@@ -26,17 +26,22 @@ def lambda_handler(event: dict, context) -> dict:
 
 def unsubscribe(user: str):
     shopify.ShopifyResource.set_site(SHOP_URL)
-    customer = shopify.customer.Customer.find(email=user)
+    try:
+        customer = shopify.customer.Customer.find(email=user)
+    except:
+        return
     if len(customer) > 1:
-        logger.error("too many results when looking for customer:", user)
+        logger.error("too many results when looking for customer: %s", user)
         return
     if len(customer) == 0:
-        logger.error("No customer found:", user)
+        logger.error("No customer found: %s", user)
         return
     logger.info('unsubscribing: %s', user)
     customer[0].accepts_marketing = False
-    if not customer[0].save():
-        logger.error("unable to unsubscribe user:", user)
+    try:
+        customer[0].save()
+    except:
+        logger.error("unable to unsubscribe user: %s", user)
         return
     
 
